@@ -11,6 +11,42 @@
 #include "../common/xdp_stats_kern_user.h"
 #include "../common/xdp_stats_kern.h"
 
+//int test;
+
+struct bpf_map_def SEC("maps") transit_table_v4 = {
+    .type = BPF_MAP_TYPE_HASH,
+    .key_size = sizeof(__u32),
+    .value_size = sizeof(struct transit_behavior),
+    .max_entries = MAX_TRANSIT_ENTRIES,
+};
+
+/*パケットのチェック*/
+static inline struct iphdr *get_ipv4(struct xdp_md *xdp)
+{
+    void *data = (void *)(long)xdp->data;
+    void *data_end = (void *)(long)xdp->data_end;
+
+    struct iphdr *iph = data + sizeof(struct ethhdr);
+
+    if (data + sizeof(struct ethhdr) > data_end) {
+        return NULL;
+    }
+
+    if (iph + 1 > data_end) {
+        return NULL;
+    }
+
+    return iph;
+};
+
+struct gtp1hdr { /* According to 3GPP TS 29.060. */
+    __u8 flags;
+    __u8 type;
+    __u16 length;
+    __u32 tid;
+    //u16 seqNum;
+};
+
 /* Pops the outermost VLAN tag off the packet. Returns the popped VLAN ID on
  * success or -1 on failure.
  */
@@ -51,6 +87,69 @@ static __always_inline int vlan_tag_push(struct xdp_md *ctx,
 					 struct ethhdr *eth, int vlid)
 {
 	return 0;
+}
+
+static inline int action_t_gtb4_d(struct xdb_md *xdp, struct ethhdr *eth,
+								struct transit_behavior *tb)
+{
+	void *data_end = (void *)(long)ctx->data_end;//パケットの終点
+	struct ethhdr eth_cpy;//パケットの始点
+	struct ipv6hdr *hdr;
+	struct ipv6_sr_hdr *srh;
+	__u8 srh_len;
+
+	__builtin_memcpy(&eth_cpy, eth, sizeof(eth_cpy));//イーサネットヘッダのコピー
+
+/*
+	if (bpf_xdp_adjust_head(ctx, 0 - (int)sizeof(*vlh)))//ポインタの移動
+		return -1;
+*/
+	srh_len = sizeof(struct ipv6_sr_hdr) + sizeof(struct in6_addr) * tb->segment_length;
+    if(bpf_xdp_adjust_head(xdp, 0 - (int)(sizeof(struct ipv6hdr) + srh_len))) {
+        return XDP_PASS;
+    }
+
+	data_end = (void *)(long)xdp->data_end;
+	eth = (void *)(long)xdp->data;
+	
+	if (eth + 1 > data_end)//確認
+		return -1;
+
+	__builtin_memcpy(eth, &eth_cpy, sizeof(*eth));//更新
+
+	bpf_printk("new seg6 make hdr\n");
+	hdr = (void *)(eth + 1);
+	if (hdr + 1 > data_end)
+		return -1;
+	hdr->version = 6;
+    hdr->priority = 0;
+    hdr->nexthdr = NEXTHDR_ROUTING;
+    hdr->hop_limit = 64;
+	inner_len = bpf_ntohs(iph->tot_len);//?
+    hdr->payload_len = bpf_htons(srh_len + inner_len);//?
+
+	srh = (void *)(hdr + 1);
+	if (srh + 1 > data_end)
+		return -1;
+	srh->nexthdr = IPPROTO_IPIP;
+    srh->hdrlen = (srh_len / 8 - 1);
+    srh->type = 4;
+    srh->segments_left = tb->segment_length - 1;
+    srh->first_segment = tb->segment_length - 1;
+    srh->flags = 0;
+
+	/*情報の追加*/
+/*
+	vlh = (void *)(eth + 1);
+	if (vlh + 1 > data_end)
+		return -1;
+	vlh->h_vlan_TCI = bpf_htons(vlid);
+	vlh->h_vlan_encapsulated_proto = eth->h_proto;
+*/
+
+	eth->h_proto = bpf_htons(ETH_P_8021Q);
+	return 0;
+
 }
 
 /* Implement assignment 1 in this section */
@@ -148,6 +247,37 @@ int  xdp_parser_func(struct xdp_md *ctx)
 	}
  out:
 	return xdp_stats_record_action(ctx, action);
+}
+
+SEC("xdp_prog")
+int srv6(struct xdo_md *xdp)
+{
+	void *data_end = (void *)(long)ctx->data_end;
+	void *data = (void *)(long)ctx->data;
+
+	/* These keep track of the next header type and iterator pointer */
+	struct hdr_cursor nh;
+	int nh_type;
+	nh.pos = data;
+
+	struct ethhdr *eth;
+	nh_type = parse_ethhdr(&nh, data_end, &eth);
+	if (nh_type < 0)
+		return XDP_PASS;
+
+	/* Assignment 2 and 3 will implement these. For now they do nothing */
+	if (proto_is_vlan(eth->h_proto))
+		vlan_tag_pop(xdp, eth);
+	else
+		vlan_tag_push(xdp, eth, 1);
+
+	tb = bpf_map_lookup_elem(&transit_table_v4, &iph->daddr);
+	if(tb -> action == SEG6_IPTUN_MODE_ENCAP_T_M_GTP4_D)
+		action_t_gtp4_d(xdp, eth, tb);	
+
+	return XDP_PASS;
+		
+	}	
 }
 
 char _license[] SEC("license") = "GPL";
