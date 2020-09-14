@@ -11,8 +11,6 @@
 #include "../common/xdp_stats_kern_user.h"
 #include "../common/xdp_stats_kern.h"
 
-//int test;
-
 struct bpf_map_def SEC("maps") transit_table_v4 = {
     .type = BPF_MAP_TYPE_HASH,
     .key_size = sizeof(__u32),
