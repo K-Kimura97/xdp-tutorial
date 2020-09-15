@@ -110,6 +110,7 @@ static inline int action_t_gtb4_d(struct xdb_md *xdp, struct ethhdr *eth,
 	
 	if (eth + 1 > data_end)//確認
 		return -1;
+		
 	__builtin_memcpy(eth, &eth_cpy, sizeof(*eth));//更新
 
 	bpf_printk("new seg6 make hdr\n");
@@ -255,6 +256,7 @@ int srv6(struct xdo_md *xdp)
 	nh.pos = data;
 
 	struct ethhdr *eth;
+
 	nh_type = parse_ethhdr(&nh, data_end, &eth);
 	if (nh_type < 0)
 		return XDP_PASS;
