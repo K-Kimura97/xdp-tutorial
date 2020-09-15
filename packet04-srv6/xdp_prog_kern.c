@@ -98,8 +98,8 @@ static __always_inline int vlan_tag_push(struct xdp_md *ctx,
 static inline int action_t_gtb4_d(struct xdp_md *xdp, struct ethhdr *eth,
 								struct transit_behavior *tb)
 {
-	void *data_end = (void *)(long)ctx->data_end;//パケットの終点
-	struct ethhdr eth_cpy;//パケットの始点
+	void *data_end = (void *)(long)xdp->data_end;//パケットの終点
+	struct ethhdr eth_cpy;//パケットのコピー
 	struct ipv6hdr *hdr;
 	struct ipv6_sr_hdr *srh;
 	__u8 srh_len;
