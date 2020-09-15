@@ -102,7 +102,7 @@ static inline int action_t_gtb4_d(struct xdp_md *xdp, struct ethhdr *eth,
 {
 	void *data_end = (void *)(long)xdp->data_end;//パケットの終点
 	struct ethhdr eth_cpy;//パケットのコピー
-	struct ipv6hdr *hdr;
+	struct ipv6hdr *hdr, *iph6 = get_ipv6(xdp);
 	struct ipv6_sr_hdr *srh;
 	struct iphdr *iph;
 	
