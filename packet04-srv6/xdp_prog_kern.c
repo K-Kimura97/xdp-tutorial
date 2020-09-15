@@ -99,8 +99,7 @@ static __always_inline int vlan_tag_push(struct xdp_md *ctx,
 	return 0;
 }
 
-static inline int action_t_gtb4_d(struct xdp_md *xdp, struct ethhdr *eth,
-								struct transit_behavior *tb)
+static inline int action_t_gtb4_d(struct xdp_md *xdp, struct ethhdr *eth)
 {
 	void *data_end = (void *)(long)xdp->data_end;//パケットの終点
 	struct ethhdr eth_cpy;//パケットのコピー
