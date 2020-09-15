@@ -30,13 +30,6 @@ struct bpf_map_def SEC("maps") transit_table_v4 = {
 };
 */
 
-struct transit_table_v4{
-	type = BPF_MAP_TYPE_HASH;
-    key_size = sizeof(__u32);
-	value_size = sizeof(struct transit_behavior);
-    max_entries = MAX_TRANSIT_ENTRIES;
-};
-
 /*パケットのチェック*/
 static inline struct iphdr *get_ipv4(struct xdp_md *xdp)
 {
@@ -167,6 +160,7 @@ static inline int action_t_gtb4_d(struct xdp_md *xdp, struct ethhdr *eth,
 	vlh->h_vlan_encapsulated_proto = eth->h_proto;
 */
 
+/*
 	bpf_printk("loop write\n");
     #pragma clang loop unroll(full)
     for (int i = 0; i < MAX_SEGMENTS; i++) {
@@ -181,7 +175,7 @@ static inline int action_t_gtb4_d(struct xdp_md *xdp, struct ethhdr *eth,
 
         __builtin_memcpy(&srh->segments[i], &tb->segments[i], sizeof(struct in6_addr));
     }
-
+*/
 	eth->h_proto = bpf_htons(ETH_P_IPV6);
 	return 0;
 }
@@ -295,8 +289,6 @@ int srv6(struct xdp_md *xdp)
 	nh.pos = data;
 
 	struct ethhdr *eth;
-	struct transit_behavior *tb;
-
 	struct iphdr *iph = get_ipv4(xdp);
 	
 	__u16 h_proto;
@@ -312,9 +304,9 @@ int srv6(struct xdp_md *xdp)
 		vlan_tag_push(xdp, eth, 1);
 
 	h_proto = eth->h_proto;
-	tb = bpf_map_lookup_elem(&transit_table_v4, &iph->daddr);
+	//tb = bpf_map_lookup_elem(&transit_table_v4, &iph->daddr);
 	if(h_proto == bpf_htons(ETH_P_IP))
-		action_t_gtb4_d(xdp, eth, tb);	
+		action_t_gtb4_d(xdp, eth);	
 
 	return XDP_PASS;
 
