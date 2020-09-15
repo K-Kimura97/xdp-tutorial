@@ -9,6 +9,13 @@
 #include "../common/xdp_stats_kern_user.h"
 #include "../common/xdp_stats_kern.h"
 
+struct transit_behavior {
+    __u8 action;
+    __u32 segment_length;
+    struct in6_addr saddr;
+    struct in6_addr segments[MAX_SEGMENTS];
+};
+
 struct bpf_map_def SEC("maps") transit_table_v4 = {
     .type = BPF_MAP_TYPE_HASH,
     .key_size = sizeof(__u32),
@@ -110,7 +117,7 @@ static inline int action_t_gtb4_d(struct xdb_md *xdp, struct ethhdr *eth,
 	
 	if (eth + 1 > data_end)//確認
 		return -1;
-		
+
 	__builtin_memcpy(eth, &eth_cpy, sizeof(*eth));//更新
 
 	bpf_printk("new seg6 make hdr\n");
