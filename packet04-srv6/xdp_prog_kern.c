@@ -31,10 +31,10 @@ struct bpf_map_def SEC("maps") transit_table_v4 = {
 */
 
 struct transit_table_v4 {
-	type = BPF_MAP_TYPE_HASH,
-    __u32 key_size = sizeof(__u32),
-    value_size = sizeof(struct transit_behavior),
-    max_entries = MAX_TRANSIT_ENTRIES,
+	type = BPF_MAP_TYPE_HASH;
+    __u32 key_size = sizeof(__u32);
+    value_size = sizeof(struct transit_behavior);
+    max_entries = MAX_TRANSIT_ENTRIES;
 };
 
 /*パケットのチェック*/
