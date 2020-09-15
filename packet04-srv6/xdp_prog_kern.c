@@ -29,22 +29,22 @@ struct bpf_map_def SEC("maps") transit_table_v4 = {
 };
 
 /*パケットのチェック*/
-static inline struct ipv6hdr *get_ipv6(struct xdp_md *xdp)
+static inline struct iphdr *get_ipv4(struct xdp_md *xdp)
 {
     void *data = (void *)(long)xdp->data;
     void *data_end = (void *)(long)xdp->data_end;
 
-    struct ipv6hdr *v6h = data + sizeof(struct ethhdr);
+    struct iphdr *iph = data + sizeof(struct ethhdr);
 
     if (data + sizeof(struct ethhdr) > data_end) {
         return NULL;
     }
 
-    if (v6h + 1 > data_end) {
+    if (iph + 1 > data_end) {
         return NULL;
     }
 
-    return v6h;
+    return iph;
 };
 
 struct gtp1hdr { /* According to 3GPP TS 29.060. */
@@ -103,8 +103,8 @@ static inline int action_t_gtb4_d(struct xdp_md *xdp, struct ethhdr *eth,
 	void *data_end = (void *)(long)xdp->data_end;//パケットの終点
 	struct ethhdr eth_cpy;//パケットのコピー
 	struct ipv6hdr *hdr;
-	struct ipv6hdr *iph6 = get_ipv6(xdp);
 	struct ipv6_sr_hdr *srh;
+	struct iphdr *iph = get_ipv4(xdp);
 	
 	__u8 srh_len;
 	__u16 inner_len;
@@ -136,7 +136,7 @@ static inline int action_t_gtb4_d(struct xdp_md *xdp, struct ethhdr *eth,
     hdr->priority = 0;
     hdr->nexthdr = NEXTHDR_ROUTING;
     hdr->hop_limit = 64;
-	inner_len = bpf_ntohs(iph6->tot_len);//?
+	inner_len = bpf_ntohs(iph->tot_len);//?
     hdr->payload_len = bpf_htons(srh_len + inner_len);//?
 
 	srh = (void *)(hdr + 1);
@@ -273,7 +273,7 @@ int srv6(struct xdp_md *xdp)
 	struct ethhdr *eth;
 	struct transit_behavior *tb;
 
-	struct ipv6hdr *iph6 = get_ipv6(xdp);
+	struct iphdr *iph = get_ipv4(xdp);
 	
 	__u16 h_proto;
 
@@ -288,7 +288,7 @@ int srv6(struct xdp_md *xdp)
 		vlan_tag_push(xdp, eth, 1);
 
 	h_proto = eth->h_proto;
-	tb = bpf_map_lookup_elem(&transit_table_v4, &iph6->daddr);
+	tb = bpf_map_lookup_elem(&transit_table_v4, &iph->daddr);
 	if(h_proto == bpf_htons(ETH_P_IP))
 		action_t_gtp4_d(xdp, eth, tb);	
 
