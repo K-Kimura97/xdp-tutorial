@@ -158,6 +158,21 @@ static inline int action_t_gtb4_d(struct xdp_md *xdp, struct ethhdr *eth,
 	vlh->h_vlan_encapsulated_proto = eth->h_proto;
 */
 
+	bpf_printk("loop write\n");
+    #pragma clang loop unroll(full)
+    for (int i = 0; i < MAX_SEGMENTS; i++) {
+        if (tb->segment_length <= i) {
+            break;
+        }
+        if (tb->segment_length == i-1){
+            // todo :: convation ipv6 addr
+        }
+		if ((void *)(&srh->segments[i] + sizeof(struct in6_addr) + 1) > data_end)
+            return XDP_PASS;
+
+        __builtin_memcpy(&srh->segments[i], &tb->segments[i], sizeof(struct in6_addr));
+    }
+
 	eth->h_proto = bpf_htons(ETH_P_IPV6);
 	return 0;
 }
