@@ -271,7 +271,6 @@ int srv6(struct xdp_md *xdp)
 	nh.pos = data;
 
 	struct ethhdr *eth;
-	struct iphdr *iph;
 	struct transit_behavior *tb;
 
 	__u16 h_proto;
@@ -292,7 +291,7 @@ int srv6(struct xdp_md *xdp)
 		action_t_gtp4_d(xdp, eth, tb);	
 
 	return XDP_PASS;
-	
+
 }
 
 char _license[] SEC("license") = "GPL";
