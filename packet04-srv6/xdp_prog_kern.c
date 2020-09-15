@@ -105,7 +105,7 @@ static inline int action_t_gtb4_d(struct xdp_md *xdp, struct ethhdr *eth,
 	 struct iphdr *iph
 
 	__u8 srh_len;
-	__u16 innet_len;
+	__u16 inner_len;
 
 	__builtin_memcpy(&eth_cpy, eth, sizeof(eth_cpy));//イーサネットヘッダのコピー
 
