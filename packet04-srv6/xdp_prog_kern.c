@@ -11,6 +11,8 @@
 #include <linux/seg6.h>
 #define MAX_TRANSIT_ENTRIES 256
 #define MAX_SEGMENTS 5
+// net/ipv6.h
+#define NEXTHDR_ROUTING		43	/* Routing header. */
 
 struct transit_behavior {
     __u8 action;
@@ -102,8 +104,8 @@ static inline int action_t_gtb4_d(struct xdp_md *xdp, struct ethhdr *eth,
 	struct ethhdr eth_cpy;//パケットのコピー
 	struct ipv6hdr *hdr;
 	struct ipv6_sr_hdr *srh;
-	 struct iphdr *iph
-
+	struct iphdr *iph;
+	
 	__u8 srh_len;
 	__u16 inner_len;
 
@@ -269,6 +271,8 @@ int srv6(struct xdp_md *xdp)
 	nh.pos = data;
 
 	struct ethhdr *eth;
+	struct iphdr *iph;
+	struct transit_behavior *tb;
 
 	nh_type = parse_ethhdr(&nh, data_end, &eth);
 	if (nh_type < 0)
