@@ -136,7 +136,7 @@ static inline int action_t_gtb4_d(struct xdp_md *xdp, struct ethhdr *eth,
     hdr->priority = 0;
     hdr->nexthdr = NEXTHDR_ROUTING;
     hdr->hop_limit = 64;
-	inner_len = bpf_ntohs(iph->tot_len);//?
+	inner_len = bpf_ntohs(iph6->tot_len);//?
     hdr->payload_len = bpf_htons(srh_len + inner_len);//?
 
 	srh = (void *)(hdr + 1);
