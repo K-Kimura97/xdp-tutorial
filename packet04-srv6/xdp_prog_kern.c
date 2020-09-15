@@ -102,7 +102,10 @@ static inline int action_t_gtb4_d(struct xdp_md *xdp, struct ethhdr *eth,
 	struct ethhdr eth_cpy;//パケットのコピー
 	struct ipv6hdr *hdr;
 	struct ipv6_sr_hdr *srh;
+	 struct iphdr *iph
+
 	__u8 srh_len;
+	__u16 innet_len;
 
 	__builtin_memcpy(&eth_cpy, eth, sizeof(eth_cpy));//イーサネットヘッダのコピー
 
@@ -255,10 +258,10 @@ int  xdp_parser_func(struct xdp_md *ctx)
 }
 
 SEC("xdp_prog")
-int srv6(struct xdo_md *xdp)
+int srv6(struct xdp_md *xdp)
 {
-	void *data_end = (void *)(long)ctx->data_end;
-	void *data = (void *)(long)ctx->data;
+	void *data_end = (void *)(long)xdp->data_end;
+	void *data = (void *)(long)xdp->data;
 
 	/* These keep track of the next header type and iterator pointer */
 	struct hdr_cursor nh;
