@@ -30,11 +30,18 @@ struct bpf_map_def SEC("maps") transit_table_v4 = {
 };
 */
 
-struct transit_table_v4 {
-	__u32 type = BPF_MAP_TYPE_HASH;
-    __u32 key_size = sizeof(__u32);
-    __u32 value_size = sizeof(struct transit_behavior);
-    __u32 max_entries = MAX_TRANSIT_ENTRIES;
+struct transit_table {
+	__u32 type;
+    __u32 key_size;
+    __u32 value_size;
+    __u32 max_entries;
+}
+
+static inline struct transit_table *transit_table_v4(void) {
+	type = BPF_MAP_TYPE_HASH;
+    key_size = sizeof(__u32);
+	value_size = sizeof(struct transit_behavior);
+    max_entries = MAX_TRANSIT_ENTRIES;
 };
 
 /*パケットのチェック*/
