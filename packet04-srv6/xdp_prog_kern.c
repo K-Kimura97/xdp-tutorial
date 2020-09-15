@@ -8,7 +8,7 @@
 /* Defines xdp_stats_map */
 #include "../common/xdp_stats_kern_user.h"
 #include "../common/xdp_stats_kern.h"
-
+#include <linux/seg6.h>
 #define MAX_TRANSIT_ENTRIES 256
 #define MAX_SEGMENTS 5
 
