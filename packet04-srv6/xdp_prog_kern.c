@@ -29,22 +29,22 @@ struct bpf_map_def SEC("maps") transit_table_v4 = {
 };
 
 /*パケットのチェック*/
-static inline struct iphdr *get_ipv4(struct xdp_md *xdp)
+static inline struct ipv6hdr *get_ipv6(struct xdp_md *xdp)
 {
     void *data = (void *)(long)xdp->data;
     void *data_end = (void *)(long)xdp->data_end;
 
-    struct iphdr *iph = data + sizeof(struct ethhdr);
+    struct ipv6hdr *v6h = data + sizeof(struct ethhdr);
 
     if (data + sizeof(struct ethhdr) > data_end) {
         return NULL;
     }
 
-    if (iph + 1 > data_end) {
+    if (v6h + 1 > data_end) {
         return NULL;
     }
 
-    return iph;
+    return v6h;
 };
 
 struct gtp1hdr { /* According to 3GPP TS 29.060. */
@@ -272,7 +272,8 @@ int srv6(struct xdp_md *xdp)
 
 	struct ethhdr *eth;
 	struct transit_behavior *tb;
-	struct iphdr *iph = get_ipv4(xdp);
+
+	struct ipv6hdr *iph6 = get_ipv6(xdp);
 	
 	__u16 h_proto;
 
@@ -287,7 +288,7 @@ int srv6(struct xdp_md *xdp)
 		vlan_tag_push(xdp, eth, 1);
 
 	h_proto = eth->h_proto;
-	tb = bpf_map_lookup_elem(&transit_table_v4, &iph->daddr);
+	tb = bpf_map_lookup_elem(&transit_table_v4, &iph6->daddr);
 	if(h_proto == bpf_htons(ETH_P_IP))
 		action_t_gtp4_d(xdp, eth, tb);	
 
