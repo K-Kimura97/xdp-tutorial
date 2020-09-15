@@ -112,7 +112,6 @@ static inline int action_t_gtb4_d(struct xdb_md *xdp, struct ethhdr *eth,
 	
 	if (eth + 1 > data_end)//確認
 		return -1;
-
 	__builtin_memcpy(eth, &eth_cpy, sizeof(*eth));//更新
 
 	bpf_printk("new seg6 make hdr\n");
@@ -145,12 +144,11 @@ static inline int action_t_gtb4_d(struct xdb_md *xdp, struct ethhdr *eth,
 	vlh->h_vlan_encapsulated_proto = eth->h_proto;
 */
 
-	eth->h_proto = bpf_htons(ETH_P_8021Q);
+	eth->h_proto = bpf_htons(ETH_P_IPV6);
 	return 0;
-
 }
 
-/* Implement assignment 1 in this section */
+/* Implement assignment 1 in this section */	
 SEC("xdp_port_rewrite")
 int xdp_port_rewrite_func(struct xdp_md *ctx)
 {
