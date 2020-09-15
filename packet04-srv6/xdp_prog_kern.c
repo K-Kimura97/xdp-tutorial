@@ -21,12 +21,21 @@ struct transit_behavior {
     struct in6_addr segments[MAX_SEGMENTS];
 };
 
+/*
 struct bpf_map_def SEC("maps") transit_table_v4 = {
     .type = BPF_MAP_TYPE_HASH,
     .key_size = sizeof(__u32),
     .value_size = sizeof(struct transit_behavior),
     .max_entries = MAX_TRANSIT_ENTRIES,
 };
+*/
+
+struct transit_table_v4 {
+	.type = BPF_MAP_TYPE_HASH,
+    .key_size = sizeof(__u32),
+    .value_size = sizeof(struct transit_behavior),
+    .max_entries = MAX_TRANSIT_ENTRIES,
+}
 
 /*パケットのチェック*/
 static inline struct iphdr *get_ipv4(struct xdp_md *xdp)
