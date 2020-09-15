@@ -272,7 +272,8 @@ int srv6(struct xdp_md *xdp)
 
 	struct ethhdr *eth;
 	struct transit_behavior *tb;
-
+	struct iphdr *iph = get_ipv4(xdp);
+	
 	__u16 h_proto;
 
 	nh_type = parse_ethhdr(&nh, data_end, &eth);
