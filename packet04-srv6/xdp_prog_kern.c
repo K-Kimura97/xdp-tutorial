@@ -290,7 +290,7 @@ int srv6(struct xdp_md *xdp)
 	h_proto = eth->h_proto;
 	tb = bpf_map_lookup_elem(&transit_table_v4, &iph->daddr);
 	if(h_proto == bpf_htons(ETH_P_IP))
-		action_t_gtp4_d(xdp, eth, tb);	
+		action_t_gtb4_d(xdp, eth, tb);	
 
 	return XDP_PASS;
 
