@@ -275,7 +275,7 @@ int srv6(struct xdp_md *xdp)
 	struct transit_behavior *tb;
 
 	__u16 h_proto;
-	
+
 	nh_type = parse_ethhdr(&nh, data_end, &eth);
 	if (nh_type < 0)
 		return XDP_PASS;
@@ -292,8 +292,7 @@ int srv6(struct xdp_md *xdp)
 		action_t_gtp4_d(xdp, eth, tb);	
 
 	return XDP_PASS;
-		
-	}	
+	
 }
 
 char _license[] SEC("license") = "GPL";
