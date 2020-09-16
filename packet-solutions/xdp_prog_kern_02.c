@@ -12,16 +12,15 @@
 #include <linux/if_ether.h>
 #include <bpf/bpf_helpers.h>
 #include <bpf/bpf_endian.h>
-​
+
 // The parsing helper functions from the packet01 lesson have moved here
 #include "../common/parsing_helpers.h"
 #include "../common/rewrite_helpers.h"
-​
+
 /* Defines xdp_stats_map */
 #include "../common/xdp_stats_kern_user.h"
 #include "../common/xdp_stats_kern.h"
-​
-​
+
 // net/ipv6.h
 #define NEXTHDR_IPV6 41
 #define NEXTHDR_ROUTING		43	/* Routing header. */
@@ -89,7 +88,7 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
         };*/
 ​
 ​
-        __builtin_memcpy(outerip6h, innerip6h, sizeof(*innerip6h));
+    __builtin_memcpy(outerip6h, innerip6h, sizeof(*innerip6h));
 	innerlen = bpf_ntohs(innerip6h->payload_len);
 	//__builtin_memcpy(&outerip6h->saddr, &outer_src_ipv6, sizeof(outer_src_ipv6));
 	__builtin_memcpy(&outerip6h->daddr, &outer_dst_ipv6, sizeof(outer_dst_ipv6));

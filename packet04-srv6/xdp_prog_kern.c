@@ -116,8 +116,8 @@ static inline int action_t_gtb4_d(struct xdp_md *xdp, struct ethhdr *eth)
 	srh->nexthdr = IPPROTO_IPIP;
     srh->hdrlen = (srh_len / 8 - 1);
     srh->type = 4;
-    srh->segments_left = tb->segment_length - 1;
-    srh->first_segment = tb->segment_length - 1;
+    srh->segments_left = tb->segment_length - 1;//0
+    srh->first_segment = tb->segment_length - 1;//0
     srh->flags = 0;
 */
 
