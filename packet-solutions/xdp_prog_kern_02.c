@@ -97,7 +97,7 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
 	outerip6h->payload_len = bpf_htons(innerlen + sizeof(*outerip6h));
 	//__builtin_memcpy(&(outerip6h->saddr), &outer_src_ipv6, sizeof(struct in6_addr));
 	//__builtin_memcpy(&outerip6h->daddr, &outer_dst_ipv6, sizeof(struct in6_addr));
-	
+
         eth->h_proto = bpf_htons(ETH_P_IPV6);
         return 0;
 }
@@ -118,7 +118,7 @@ int xdp_patch_ports_func(struct xdp_md *ctx)
 	void *data_end = (void *)(long)ctx->data_end;
 	void *data = (void *)(long)ctx->data;
 	struct hdr_cursor nh = { .pos = data };
-​
+	
 	eth_type = parse_ethhdr(&nh, data_end, &eth);
 	if (eth_type < 0) {
 		action = XDP_ABORTED;
