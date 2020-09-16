@@ -118,13 +118,13 @@ int xdp_patch_ports_func(struct xdp_md *ctx)
 	void *data_end = (void *)(long)ctx->data_end;
 	void *data = (void *)(long)ctx->data;
 	struct hdr_cursor nh = { .pos = data };
-	
+
 	eth_type = parse_ethhdr(&nh, data_end, &eth);
 	if (eth_type < 0) {
 		action = XDP_ABORTED;
 		goto out;
 	}
-​
+
 	if (eth_type == bpf_htons(ETH_P_IP)) {
 		ip_type = parse_iphdr(&nh, data_end, &iphdr);
 	} else if (eth_type == bpf_htons(ETH_P_IPV6)) {
@@ -160,22 +160,22 @@ int xdp_vlan_swap_func(struct xdp_md *ctx)
 {
 	void *data_end = (void *)(long)ctx->data_end;
 	void *data = (void *)(long)ctx->data;
-​
+
 	/* These keep track of the next header type and iterator pointer */
 	struct hdr_cursor nh;
 	int nh_type;
 	nh.pos = data;
-​
+
 	struct ethhdr *eth;
 	nh_type = parse_ethhdr(&nh, data_end, &eth);
 	if (nh_type < 0)
 		return XDP_PASS;
-​
+
 	if (proto_is_vlan(eth->h_proto))
 		vlan_tag_pop(ctx, eth);
 	else
 		vlan_tag_push(ctx, eth, 1);
-​
+
 	return XDP_PASS;
 }
 
@@ -189,15 +189,15 @@ int xdp_srv6_encap_func(struct xdp_md *ctx)
         struct hdr_cursor nh;
         int nh_type;
         nh.pos = data;
-​
+
         struct ethhdr *eth;
         nh_type = parse_ethhdr(&nh, data_end, &eth);
         if (nh_type < 0)
                 return XDP_PASS;
-​
+
 	if (eth->h_proto == bpf_htons(ETH_P_IPV6))
                 srv6_encap(ctx, eth);
-​
+
         return XDP_PASS;
 }
 
@@ -206,5 +206,5 @@ int xdp_pass_func(struct xdp_md *ctx)
 {
 	return XDP_PASS;
 }
-​
+
 char _license[] SEC("license") = "GPL";
