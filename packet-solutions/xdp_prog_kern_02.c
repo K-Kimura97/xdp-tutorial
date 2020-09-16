@@ -33,7 +33,7 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
     struct ipv6hdr *outerip6h;
     struct ipv6hdr *innerip6h;
 	struct ipv6_sr_hdr *srh;
-	struct in6_addr *seg_item;
+	struct in6_addr *seg_item = NULL;
 
     /* First copy the original Ethernet header */
     __builtin_memcpy(&eth_cpy, eth, sizeof(eth_cpy));
