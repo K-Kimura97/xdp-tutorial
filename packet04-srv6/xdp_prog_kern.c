@@ -116,7 +116,7 @@ static inline int action_t_gtb4_d(struct xdp_md *xdp, struct ethhdr *eth)
 */
 
     if(bpf_xdp_adjust_head(xdp, 0 - (int)(sizeof(*hdr)))) {
-        return -1
+        return -1;
     }
 
 	data_end = (void *)(long)xdp->data_end;
@@ -136,6 +136,15 @@ static inline int action_t_gtb4_d(struct xdp_md *xdp, struct ethhdr *eth)
 	if (srh + 1 > data_end)
 		return -1;
 
+	struct in6_addr add_ipv6 = {
+        .in6_u = {
+            .u6_addr8 = {
+                0x24, 0x06, 0xda, 0x14, 0x0a, 0x6f, 0x78, 0x01,
+                0xb7, 0xb8, 0x62, 0x29, 0xe0, 0x26, 0x05, 0x71,
+            }
+        }
+    };
+
 	__builtin_memcpy(hdr, srh, sizeof(*srh));
 	inner_len = bpf_ntohs(srh->hdrlen);//?
 
@@ -144,7 +153,7 @@ static inline int action_t_gtb4_d(struct xdp_md *xdp, struct ethhdr *eth)
     hdr->priority = 0;
     hdr->nexthdr = NEXTHDR_ROUTING;
     hdr->hop_limit = 64;
-    hdr->payload_len = bpf_htons(srh_len + inner_len);//?
+    hdr->payload_len = bpf_htons(sizeof(*hdr) + inner_len);//?
 
 /*
 	srh->nexthdr = IPPROTO_IPIP;
