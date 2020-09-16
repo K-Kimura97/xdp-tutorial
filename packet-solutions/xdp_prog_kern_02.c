@@ -110,6 +110,12 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
 	//__builtin_memcpy(&(outerip6h->saddr), &outer_src_ipv6, sizeof(struct in6_addr));
 	//__builtin_memcpy(&outerip6h->daddr, &outer_dst_ipv6, sizeof(struct in6_addr));
 
+	bpf_printk("loop write\n");
+	if ((void *)(&srh->segments[0] + sizeof(struct in6_addr) + 1) > data_end)
+        return XDP_PASS;
+
+    __builtin_memcpy(&srh->segments[0], &tb->segments[0], sizeof(struct in6_addr));
+
     eth->h_proto = bpf_htons(ETH_P_IPV6);
     return 0;
 }
