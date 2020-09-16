@@ -64,14 +64,14 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
 	srh = (void *)(outerip6h + 1);
 	if (srh + 1 > data_end)
         return -1;
-
-    innerip6h = (void *)(srh + 1);
-	if (innerip6h +1 > data_end)
-		return -1;
-
+/*
     seg_item = (void *)(srh + 1);
     if (seg_item + 1 > data_end)
         return -1;
+*/
+	innerip6h = (void *)(srh+ 1);
+	if (innerip6h +1 > data_end)
+		return -1;
 
 	__u8 innerlen;
 
