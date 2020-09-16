@@ -30,25 +30,6 @@ struct bpf_map_def SEC("maps") transit_table_v4 = {
 };
 */
 
-/*パケットのチェック*/
-static inline struct iphdr *get_ipv4(struct xdp_md *xdp)
-{
-    void *data = (void *)(long)xdp->data;
-    void *data_end = (void *)(long)xdp->data_end;
-
-    struct iphdr *iph = data + sizeof(struct ethhdr);
-
-    if (data + sizeof(struct ethhdr) > data_end) {
-        return NULL;
-    }
-
-    if (iph + 1 > data_end) {
-        return NULL;
-    }
-
-    return iph;
-};
-
 struct gtp1hdr { /* According to 3GPP TS 29.060. */
     __u8 flags;
     __u8 type;
