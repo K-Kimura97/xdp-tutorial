@@ -32,42 +32,41 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
         struct ethhdr eth_cpy;
         struct ipv6hdr *outerip6h;
         struct ipv6hdr *innerip6h;
-​
+
         /* First copy the original Ethernet header */
         __builtin_memcpy(&eth_cpy, eth, sizeof(eth_cpy));
-​
+
         /* Then add space in front of the packet */
         if (bpf_xdp_adjust_head(ctx, 0 - (int)sizeof(*outerip6h)))
                 return -1;
-​
+
         /* Need to re-evaluate data_end and data after head adjustment, and
          * bounds check, even though we know there is enough space (as we
          * increased it).
          */
         data_end = (void *)(long)ctx->data_end;
         eth = (void *)(long)ctx->data;
-​
+
         if (eth + 1 > data_end)
                 return -1;
-​
+
         /* Copy back Ethernet header in the right place, populate VLAN tag with
          * ID and proto, and set outer Ethernet header to VLAN type.
          */
         __builtin_memcpy(eth, &eth_cpy, sizeof(*eth));
-​
+
         outerip6h = (void *)(eth + 1);
-​
+
         if (outerip6h + 1 > data_end)
                 return -1;
-​
+
         innerip6h = (void *)(outerip6h + 1);
-​
+
 	if (innerip6h +1 > data_end)
 		return -1;
-​
+
 	__u8 innerlen;
-​
-	
+
 	struct in6_addr outer_dst_ipv6 = {
                 .in6_u = {
                         .u6_addr8 = {
@@ -76,7 +75,7 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
                         }
                 }
         };
-​
+
 	/*
         struct in6_addr outer_src_ipv6 = {
                 .in6_u = {
@@ -86,8 +85,7 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
                         }
                 }
         };*/
-​
-​
+		
     __builtin_memcpy(outerip6h, innerip6h, sizeof(*innerip6h));
 	innerlen = bpf_ntohs(innerip6h->payload_len);
 	//__builtin_memcpy(&outerip6h->saddr, &outer_src_ipv6, sizeof(outer_src_ipv6));
