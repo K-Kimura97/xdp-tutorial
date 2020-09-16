@@ -146,7 +146,7 @@ int xdp_patch_ports_func(struct xdp_md *ctx)
 		}
 		tcphdr->dest = bpf_htons(bpf_ntohs(tcphdr->dest) - 1);
 	}
-​
+	
 out:
 	return xdp_stats_record_action(ctx, action);
 }
@@ -184,7 +184,7 @@ int xdp_srv6_encap_func(struct xdp_md *ctx)
 {
         void *data_end = (void *)(long)ctx->data_end;
         void *data = (void *)(long)ctx->data;
-		
+
         /* These keep track of the next header type and iterator pointer */
         struct hdr_cursor nh;
         int nh_type;
