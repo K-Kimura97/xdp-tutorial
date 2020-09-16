@@ -302,7 +302,6 @@ int srv6(struct xdp_md *xdp)
 	nh.pos = data;
 
 	struct ethhdr *eth;
-	struct iphdr *iph = get_ipv4(xdp);
 	
 	__u16 h_proto;
 
@@ -316,7 +315,7 @@ int srv6(struct xdp_md *xdp)
 	else
 		vlan_tag_push(xdp, eth, 1);
 
-	h_proto = eth->h_proto;
+	h_proto = eth->h_proto;sk_reuseport_md
 	//tb = bpf_map_lookup_elem(&transit_table_v4, &iph->daddr);
 	if(h_proto == bpf_htons(ETH_P_IP))
 		action_t_gtb4_d(xdp, eth);	
