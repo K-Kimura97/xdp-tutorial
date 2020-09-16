@@ -85,7 +85,7 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
                         }
                 }
         };*/
-		
+
     __builtin_memcpy(outerip6h, innerip6h, sizeof(*innerip6h));
 	innerlen = bpf_ntohs(innerip6h->payload_len);
 	//__builtin_memcpy(&outerip6h->saddr, &outer_src_ipv6, sizeof(outer_src_ipv6));
@@ -97,7 +97,7 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
 	outerip6h->payload_len = bpf_htons(innerlen + sizeof(*outerip6h));
 	//__builtin_memcpy(&(outerip6h->saddr), &outer_src_ipv6, sizeof(struct in6_addr));
 	//__builtin_memcpy(&outerip6h->daddr, &outer_dst_ipv6, sizeof(struct in6_addr));
-​
+	
         eth->h_proto = bpf_htons(ETH_P_IPV6);
         return 0;
 }
