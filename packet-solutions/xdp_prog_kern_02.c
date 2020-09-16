@@ -114,7 +114,7 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
 	if ((void *)(&srh->segments[0] + sizeof(struct in6_addr) + 1) > data_end)
         return XDP_PASS;
 
-    __builtin_memcpy(&srh->segments[0], &tb->segments[0], sizeof(struct in6_addr));
+//    __builtin_memcpy(&srh->segments[0], , sizeof(struct in6_addr));
 
     eth->h_proto = bpf_htons(ETH_P_IPV6);
     return 0;
