@@ -105,10 +105,8 @@ static inline int action_t_gtb4_d(struct xdp_md *xdp, struct ethhdr *eth)
 	struct ethhdr eth_cpy;//パケットのコピー
 	struct ipv6hdr *hdr;
 	struct ipv6_sr_hdr *srh;
-	struct iphdr *iph = get_ipv4(xdp);
 	
-	__u8 srh_len;
-	__u16 inner_len;
+	__u8 inner_len;
 
 	__builtin_memcpy(&eth_cpy, eth, sizeof(eth_cpy));//イーサネットヘッダのコピー
 
@@ -116,9 +114,9 @@ static inline int action_t_gtb4_d(struct xdp_md *xdp, struct ethhdr *eth)
 	if (bpf_xdp_adjust_head(ctx, 0 - (int)sizeof(*vlh)))//ポインタの移動
 		return -1;
 */
-	srh_len = sizeof(struct ipv6_sr_hdr) + sizeof(struct in6_addr) * tb->segment_length;
-    if(bpf_xdp_adjust_head(xdp, 0 - (int)(sizeof(struct ipv6hdr) + srh_len))) {
-        return XDP_PASS;
+
+    if(bpf_xdp_adjust_head(xdp, 0 - (int)(sizeof(*hdr)))) {
+        return -1
     }
 
 	data_end = (void *)(long)xdp->data_end;
@@ -133,22 +131,29 @@ static inline int action_t_gtb4_d(struct xdp_md *xdp, struct ethhdr *eth)
 	hdr = (void *)(eth + 1);
 	if (hdr + 1 > data_end)
 		return -1;
-	hdr->version = 6;
-    hdr->priority = 0;
-    hdr->nexthdr = NEXTHDR_ROUTING;
-    hdr->hop_limit = 64;
-	inner_len = bpf_ntohs(iph->tot_len);//?
-    hdr->payload_len = bpf_htons(srh_len + inner_len);//?
 
 	srh = (void *)(hdr + 1);
 	if (srh + 1 > data_end)
 		return -1;
+
+	__builtin_memcpy(hdr, srh, sizeof(*srh));
+	inner_len = bpf_ntohs(srh->hdrlen);//?
+
+	__builtin_memcpy(&hdr->daddr, &add_ipv6, sizeof(add_ipv6));
+	hdr->version = 6;
+    hdr->priority = 0;
+    hdr->nexthdr = NEXTHDR_ROUTING;
+    hdr->hop_limit = 64;
+    hdr->payload_len = bpf_htons(srh_len + inner_len);//?
+
+/*
 	srh->nexthdr = IPPROTO_IPIP;
     srh->hdrlen = (srh_len / 8 - 1);
     srh->type = 4;
     srh->segments_left = tb->segment_length - 1;
     srh->first_segment = tb->segment_length - 1;
     srh->flags = 0;
+*/
 
 	/*情報の追加*/
 /*
