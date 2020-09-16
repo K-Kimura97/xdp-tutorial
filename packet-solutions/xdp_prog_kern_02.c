@@ -24,7 +24,7 @@
 // net/ipv6.h
 #define NEXTHDR_IPV6 41
 #define NEXTHDR_ROUTING		43	/* Routing header. */
-​
+
 static __always_inline int srv6_encap(struct xdp_md *ctx,
                 struct ethhdr *eth)
 {
@@ -103,8 +103,7 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
         eth->h_proto = bpf_htons(ETH_P_IPV6);
         return 0;
 }
-​
-​
+
 /*
  * Solution to the assignment 1 in lesson packet02
  */
@@ -153,7 +152,7 @@ int xdp_patch_ports_func(struct xdp_md *ctx)
 out:
 	return xdp_stats_record_action(ctx, action);
 }
-​
+
 /*
  * Solution to the assignments 2 and 3 in lesson packet02: Will pop outermost
  * VLAN tag if it exists, otherwise push a new one with ID 1
@@ -181,7 +180,7 @@ int xdp_vlan_swap_func(struct xdp_md *ctx)
 ​
 	return XDP_PASS;
 }
-​
+
 SEC("xdp_srv6_encap")
 int xdp_srv6_encap_func(struct xdp_md *ctx)
 {
@@ -203,7 +202,7 @@ int xdp_srv6_encap_func(struct xdp_md *ctx)
 ​
         return XDP_PASS;
 }
-​
+
 SEC("xdp_pass")
 int xdp_pass_func(struct xdp_md *ctx)
 {
