@@ -60,7 +60,7 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
         if (outerip6h + 1 > data_end)
                 return -1;
 
-		srh = (void) = (void *)(outerip6h + 1);
+		srh = (void *)(outerip6h + 1);
 		if (srh + 1 > data_end)
                 return -1;
 
