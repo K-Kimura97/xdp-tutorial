@@ -29,60 +29,60 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
                 struct ethhdr *eth)
 {
 	void *data_end = (void *)(long)ctx->data_end;
-        struct ethhdr eth_cpy;
-        struct ipv6hdr *outerip6h;
-        struct ipv6hdr *innerip6h;
-		struct ipv6_sr_hdr *srh;
-		struct in6_addr *seg_item;
+    struct ethhdr eth_cpy;
+    struct ipv6hdr *outerip6h;
+    struct ipv6hdr *innerip6h;
+	struct ipv6_sr_hdr *srh;
+	struct in6_addr *seg_item;
 
-        /* First copy the original Ethernet header */
-        __builtin_memcpy(&eth_cpy, eth, sizeof(eth_cpy));
+    /* First copy the original Ethernet header */
+    __builtin_memcpy(&eth_cpy, eth, sizeof(eth_cpy));
 
-        /* Then add space in front of the packet */
-        if (bpf_xdp_adjust_head(ctx, 0 - (int)sizeof(*outerip6h) - (int)sizeof(*srh)))
-                return -1;
+    /* Then add space in front of the packet */
+    if (bpf_xdp_adjust_head(ctx, 0 - (int)sizeof(*outerip6h) - (int)sizeof(*srh)))
+        return -1;
 
-        /* Need to re-evaluate data_end and data after head adjustment, and
-         * bounds check, even though we know there is enough space (as we
-         * increased it).
-         */
-        data_end = (void *)(long)ctx->data_end;
-        eth = (void *)(long)ctx->data;
+    /* Need to re-evaluate data_end and data after head adjustment, and
+     * bounds check, even though we know there is enough space (as we
+     * increased it).
+     */
+    data_end = (void *)(long)ctx->data_end;
+    eth = (void *)(long)ctx->data;
 
-        if (eth + 1 > data_end)
-                return -1;
+    if (eth + 1 > data_end)
+        return -1;
 
-        /* Copy back Ethernet header in the right place, populate VLAN tag with
-         * ID and proto, and set outer Ethernet header to VLAN type.
-         */
-        __builtin_memcpy(eth, &eth_cpy, sizeof(*eth));
+    /* Copy back Ethernet header in the right place, populate VLAN tag with
+     * ID and proto, and set outer Ethernet header to VLAN type.
+     */
+    __builtin_memcpy(eth, &eth_cpy, sizeof(*eth));
 
-        outerip6h = (void *)(eth + 1);
-        if (outerip6h + 1 > data_end)
-                return -1;
+    outerip6h = (void *)(eth + 1);
+    if (outerip6h + 1 > data_end)
+        return -1;
 
-		srh = (void *)(outerip6h + 1);
-		if (srh + 1 > data_end)
-                return -1;
+	srh = (void *)(outerip6h + 1);
+	if (srh + 1 > data_end)
+        return -1;
 
-        innerip6h = (void *)(srh + 1);
-		if (innerip6h +1 > data_end)
-			return -1;
+    innerip6h = (void *)(srh + 1);
+	if (innerip6h +1 > data_end)
+		return -1;
 
-    	seg_item = (void *)(srh + 1);
-    	if (seg_item + 1 > data_end)
-        	return -1;
+    seg_item = (void *)(srh + 1);
+    if (seg_item + 1 > data_end)
+        return -1;
 
-		__u8 innerlen;
+	__u8 innerlen;
 
-		struct in6_addr outer_dst_ipv6 = {
-                .in6_u = {
-                        .u6_addr8 = {
-						//2406:da14:a33:1c01:9a1b:cdcb:66fa:ec0e
-                        0x24, 0x06, 0xda, 0x14, 0x0a, 0x33, 0x1c, 0x01,
-                        0x9a, 0x1b, 0xcd, 0xcb, 0x66, 0xfa, 0xec, 0x0e,
-                        }
+	struct in6_addr outer_dst_ipv6 = {
+        .in6_u = {
+            .u6_addr8 = {
+				//2406:da14:a33:1c01:9a1b:cdcb:66fa:ec0e
+                0x24, 0x06, 0xda, 0x14, 0x0a, 0x33, 0x1c, 0x01,
+                0x9a, 0x1b, 0xcd, 0xcb, 0x66, 0xfa, 0xec, 0x0e,
                 }
+            }
         };
 /*
         struct in6_addr outer_src_ipv6 = {
@@ -206,21 +206,23 @@ int xdp_vlan_swap_func(struct xdp_md *ctx)
 SEC("xdp_srv6_encap")
 int xdp_srv6_encap_func(struct xdp_md *ctx)
 {
-        void *data_end = (void *)(long)ctx->data_end;
-        void *data = (void *)(long)ctx->data;
+    void *data_end = (void *)(long)ctx->data_end;
+    void *data = (void *)(long)ctx->data;
 
-        /* These keep track of the next header type and iterator pointer */
-        struct hdr_cursor nh;
-        int nh_type;
-        nh.pos = data;
+    /* These keep track of the next header type and iterator pointer */
+    struct hdr_cursor nh;
+    int nh_type;
+    nh.pos = data;
 
-        struct ethhdr *eth;
-        nh_type = parse_ethhdr(&nh, data_end, &eth);
-        if (nh_type < 0)
-                return XDP_PASS;
+    struct ethhdr *eth;
+    nh_type = parse_ethhdr(&nh, data_end, &eth);
+    if (nh_type < 0)
+        return XDP_PASS;
 
-	if (eth->h_proto == bpf_htons(ETH_P_IPV6))
-                srv6_encap(ctx, eth);
+	if (eth->h_proto == bpf_htons(ETH_P_IPV6)){
+        srv6_encap(ctx, eth);
+		return XDP_TX;
+	}
 
         return XDP_PASS;
 }
