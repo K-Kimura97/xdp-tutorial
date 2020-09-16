@@ -32,12 +32,13 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
         struct ethhdr eth_cpy;
         struct ipv6hdr *outerip6h;
         struct ipv6hdr *innerip6h;
+		struct ipv6_sr_hdr *srh;
 
         /* First copy the original Ethernet header */
         __builtin_memcpy(&eth_cpy, eth, sizeof(eth_cpy));
 
         /* Then add space in front of the packet */
-        if (bpf_xdp_adjust_head(ctx, 0 - (int)sizeof(*outerip6h)))
+        if (bpf_xdp_adjust_head(ctx, 0 - (int)sizeof(*outerip6h) - (int)sizeof(*srh)))
                 return -1;
 
         /* Need to re-evaluate data_end and data after head adjustment, and
@@ -56,18 +57,20 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
         __builtin_memcpy(eth, &eth_cpy, sizeof(*eth));
 
         outerip6h = (void *)(eth + 1);
-
         if (outerip6h + 1 > data_end)
                 return -1;
 
-        innerip6h = (void *)(outerip6h + 1);
+		srh = (void) = (void *)(outerip6h + 1);
+		if (srh + 1 > data_end)
+                return -1;
 
-	if (innerip6h +1 > data_end)
-		return -1;
+        innerip6h = (void *)(srh + 1);
+		if (innerip6h +1 > data_end)
+			return -1;
 
-	__u8 innerlen;
+		__u8 innerlen;
 
-	struct in6_addr outer_dst_ipv6 = {
+		struct in6_addr outer_dst_ipv6 = {
                 .in6_u = {
                         .u6_addr8 = {
 						//2406:da14:a33:1c01:9a1b:cdcb:66fa:ec0e
@@ -77,30 +80,38 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
                 }
         };
 
-	/*
         struct in6_addr outer_src_ipv6 = {
                 .in6_u = {
                         .u6_addr8 = {
-                        0x24, 0x06, 0xda, 0x14, 0x0a, 0x6f, 0x78, 0x01,
-                        0xca, 0x97, 0x06, 0xf9, 0xb2, 0x74, 0xc6, 0x42,
+                        0x24, 0x06, 0xda, 0x14, 0x0a, 0x33, 0x1c, 0x01,
+                        0x9a, 0x1b, 0xcd, 0xcb, 0x66, 0xfa, 0xec, 0x0e,
                         }
                 }
-        };*/
+        };
 
     __builtin_memcpy(outerip6h, innerip6h, sizeof(*innerip6h));
 	innerlen = bpf_ntohs(innerip6h->payload_len);
-	//__builtin_memcpy(&outerip6h->saddr, &outer_src_ipv6, sizeof(outer_src_ipv6));
+	__builtin_memcpy(&outerip6h->saddr, &outer_src_ipv6, sizeof(outer_src_ipv6));
 	__builtin_memcpy(&outerip6h->daddr, &outer_dst_ipv6, sizeof(outer_dst_ipv6));
+
 	outerip6h->version=6;
 	outerip6h->priority=0;
 	outerip6h->nexthdr = NEXTHDR_IPV6;
 	outerip6h->hop_limit = 64;
-	outerip6h->payload_len = bpf_htons(innerlen + sizeof(*outerip6h));
+	outerip6h->payload_len = bpf_htons(innerlen + sizeof(*outerip6h) + sizeof(*srh));
+
+	srh->nexthdr = IPPROTO_IPV6;
+    srh->hdrlen = sizeof(*srh);
+    srh->type = 4;
+    srh->segments_left = 0;//0
+    srh->first_segment = 0;//0
+    srh->flags = 0;
+
 	//__builtin_memcpy(&(outerip6h->saddr), &outer_src_ipv6, sizeof(struct in6_addr));
 	//__builtin_memcpy(&outerip6h->daddr, &outer_dst_ipv6, sizeof(struct in6_addr));
 
-        eth->h_proto = bpf_htons(ETH_P_IPV6);
-        return 0;
+    eth->h_proto = bpf_htons(ETH_P_IPV6);
+    return 0;
 }
 
 /*
