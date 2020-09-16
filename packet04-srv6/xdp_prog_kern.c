@@ -14,30 +14,6 @@
 // net/ipv6.h
 #define NEXTHDR_ROUTING		43	/* Routing header. */
 
-struct transit_behavior {
-    __u8 action;
-    __u32 segment_length;
-    struct in6_addr saddr;
-    struct in6_addr segments[MAX_SEGMENTS];
-};
-
-/*
-struct bpf_map_def SEC("maps") transit_table_v4 = {
-    .type = BPF_MAP_TYPE_HASH,
-    .key_size = sizeof(__u32),
-    .value_size = sizeof(struct transit_behavior),
-    .max_entries = MAX_TRANSIT_ENTRIES,
-};
-*/
-
-struct gtp1hdr { /* According to 3GPP TS 29.060. */
-    __u8 flags;
-    __u8 type;
-    __u16 length;
-    __u32 tid;
-    //u16 seqNum;
-};
-
 /* Pops the outermost VLAN tag off the packet. Returns the popped VLAN ID on
  * success or -1 on failure.
  */
