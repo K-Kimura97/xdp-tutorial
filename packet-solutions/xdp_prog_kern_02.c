@@ -61,15 +61,12 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
     outerip6h = (void *)(eth + 1);
     if (outerip6h + 1 > data_end)
         return -1;
-
 	srh = (void *)(outerip6h + 1);
 	if (srh + 1 > data_end)
         return -1;
-
     seg_item = (void *)(srh + 1);
     if (seg_item + 1 > data_end)
         return -1;
-
 	innerip6h = (void *)(seg_item + 1);
 	if (innerip6h +1 > data_end)
 		return -1;
@@ -95,6 +92,7 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
 */
     __builtin_memcpy(outerip6h, innerip6h, sizeof(*innerip6h));
 	innerlen = bpf_ntohs(innerip6h->payload_len);
+
 //	__builtin_memcpy(&outerip6h->saddr, &outer_src_ipv6, sizeof(outer_src_ipv6));
 	__builtin_memcpy(&outerip6h->daddr, &outer_dst_ipv6, sizeof(outer_dst_ipv6));
 	__builtin_memcpy(seg_item, &outer_dst_ipv6, sizeof(struct in6_addr));
@@ -115,7 +113,7 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
 	//__builtin_memcpy(&(outerip6h->saddr), &outer_src_ipv6, sizeof(struct in6_addr));
 	//__builtin_memcpy(&outerip6h->daddr, &outer_dst_ipv6, sizeof(struct in6_addr));
 
-	if ((void *)(&srh->segments[0] + sizeof(struct in6_addr) + 1) > data_end)
+	if ((void *)(&srh->segments[0] + 1) > data_end)
 		return -1;
 	__builtin_memcpy(&srh->segments[0], &seg_item, sizeof(struct in6_addr));
 
