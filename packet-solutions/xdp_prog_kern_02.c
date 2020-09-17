@@ -36,13 +36,18 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
 	struct in6_addr *seg_item;
 	__u8 innerlen;
 	
+	if (eth + 1 > data_end)
+        return -1;
+	innerip6h = (void *)(eth + 1);
+	if (innerip6h + 1 > data_end)
+		return -1;
     /* First copy the original Ethernet header */
     __builtin_memcpy(&eth_cpy, eth, sizeof(eth_cpy));
 
     /* Then add space in front of the packet */
     if (bpf_xdp_adjust_head(ctx, 0 - (int)sizeof(*outerip6h) - (int)sizeof(*srh)) - (int)sizeof(*seg_item))
         return -1;
-
+	
     /* Need to re-evaluate data_end and data after head adjustment, and
      * bounds check, even though we know there is enough space (as we
      * increased it).
@@ -50,13 +55,13 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
     data_end = (void *)(long)ctx->data_end;
     eth = (void *)(long)ctx->data;
 
-    if (eth + 1 > data_end)
-        return -1;
-
     /* Copy back Ethernet header in the right place, populate VLAN tag with
      * ID and proto, and set outer Ethernet header to VLAN type.
      */
+	if (eth + 1 > data_end)
+        return -1;
     __builtin_memcpy(eth, &eth_cpy, sizeof(*eth));
+	eth->h_proto = bpf_htons(ETH_P_IPV6);
 
 	struct in6_addr outer_dst_ipv6 = {
         .in6_u = {
@@ -77,47 +82,47 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
                 }
         };
 */
+	if (eth + 1 > data_end)
+        return -1;
 	outerip6h = (void *)(eth + 1);
     if (outerip6h + 1 > data_end)
         return -1;
-	srh = (void *)(outerip6h + 1);
-	if (srh + 1 > data_end)
-        return -1;
-	seg_item = (void *)(srh + 1);
-    if (seg_item + 1 > data_end)
-        return -1;
-	innerip6h = (void *)(seg_item + 1);
-	if (innerip6h +1 > data_end)
-		return -1;
-
-    __builtin_memcpy(outerip6h, innerip6h, sizeof(*innerip6h));
+	__builtin_memcpy(outerip6h, innerip6h, sizeof(*innerip6h));
 	innerlen = bpf_ntohs(innerip6h->payload_len);
-
-//	__builtin_memcpy(&outerip6h->saddr, &outer_src_ipv6, sizeof(outer_src_ipv6));
 	__builtin_memcpy(&outerip6h->daddr, &outer_dst_ipv6, sizeof(outer_dst_ipv6));
-	__builtin_memcpy(seg_item, &outer_dst_ipv6, sizeof(struct in6_addr));
-
 	outerip6h->version=6;
 	outerip6h->priority=0;
 	outerip6h->nexthdr = NEXTHDR_IPV6;
 	outerip6h->hop_limit = 64;
 	outerip6h->payload_len = bpf_htons(innerlen + sizeof(*outerip6h) + sizeof(*srh));
 
+	srh = (void *)(outerip6h + 1)
+	if (srh + 1 > data_end)
+        return -1;
 	srh->nexthdr = IPPROTO_IPV6;
     srh->hdrlen = sizeof(*srh) + sizeof(*seg_item);
     srh->type = 4;
     srh->segments_left = 0;//0
     srh->first_segment = 0;//0
     srh->flags = 0;
+	
+	if (srh + 1 > data_end)
+        return -1;
+	seg_item = (void *)(srh + 1);
+    if (seg_item + 1 > data_end)
+        return -1;
+	__builtin_memcpy(seg_item, &outer_dst_ipv6, sizeof(struct in6_addr));
 
+    
+
+	//	__builtin_memcpy(&outerip6h->saddr, &outer_src_ipv6, sizeof(outer_src_ipv6));
 	//__builtin_memcpy(&(outerip6h->saddr), &outer_src_ipv6, sizeof(struct in6_addr));
 	//__builtin_memcpy(&outerip6h->daddr, &outer_dst_ipv6, sizeof(struct in6_addr));
-
+/*
 	if ((void *)(&srh->segments[0] + 1) > data_end)
 		return -1;
 	__builtin_memcpy(&srh->segments[0], &seg_item, sizeof(struct in6_addr));
-
-	eth->h_proto = bpf_htons(ETH_P_IPV6);
+*/
     return 0;
 }
 
