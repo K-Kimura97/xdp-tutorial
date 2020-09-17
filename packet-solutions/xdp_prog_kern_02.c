@@ -100,7 +100,7 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
 	if (srh + 1 > data_end)
         return -1;
 	srh->nexthdr = IPPROTO_IPV6;
-    srh->hdrlen = sizeof(*srh) + sizeof(*in6_addr);
+    srh->hdrlen = sizeof(*srh) + sizeof(*seg_item);
     srh->type = 4;
     srh->segments_left = 0;//0
     srh->first_segment = 0;//0
@@ -117,7 +117,7 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
 	if ((void *)(&srh->segments[0] + 1) > data_end)
 		return -1;
 //	__builtin_memcpy(&srh->segments[0], &seg_item, sizeof(struct in6_addr));
-	*srh->segments[0] = *seg_item
+	srh->segments[0] = seg_item
 
 	//	__builtin_memcpy(&outerip6h->saddr, &outer_src_ipv6, sizeof(outer_src_ipv6));
 	//__builtin_memcpy(&(outerip6h->saddr), &outer_src_ipv6, sizeof(struct in6_addr));
