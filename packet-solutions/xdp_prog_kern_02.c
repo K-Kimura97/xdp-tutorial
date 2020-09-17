@@ -100,7 +100,7 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
 	srh = (void *)outerip6h + sizeof(struct ipv6hdr);
 	if (srh + 1 > data_end)
         return -1;
-	srh->nexthdr = IPPROTO_IPV6;
+	srh->nexthdr = NEXTHDR_ROUTING;
     srh->hdrlen = (sizeof(*srh) + sizeof(*seg_item))/8 - 1;
     srh->type = 4;
     srh->segments_left = 0;//0
