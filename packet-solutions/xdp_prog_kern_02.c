@@ -85,12 +85,11 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
                 }
         };
 */
-	if (eth + 1 > data_end)
-        return -1;
+
 	outerip6h = (void *)(eth + 1);
     if (outerip6h + 1 > data_end)
         return -1;
-//	__builtin_memcpy(outerip6h, innerip6h, sizeof(*innerip6h));
+	__builtin_memcpy(outerip6h, innerip6h, sizeof(*innerip6h));
 	__builtin_memcpy(&outerip6h->daddr, &outer_dst_ipv6, sizeof(outer_dst_ipv6));
 	outerip6h->version=6;
 	outerip6h->priority=0;
@@ -108,8 +107,6 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
     srh->first_segment = 0;//0
     srh->flags = 0;
 	
-	if (srh + 1 > data_end)
-        return -1;
 	seg_item = (void *)(srh + 1);
     if (seg_item + 1 > data_end)
         return -1;
