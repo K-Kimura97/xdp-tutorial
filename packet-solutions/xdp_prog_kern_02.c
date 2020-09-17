@@ -39,7 +39,7 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
     __builtin_memcpy(&eth_cpy, eth, sizeof(eth_cpy));
 
     /* Then add space in front of the packet */
-    if (bpf_xdp_adjust_head(ctx, 0 - (int)sizeof(*outerip6h) - (int)sizeof(*srh)))
+    if (bpf_xdp_adjust_head(ctx, 0 - (int)sizeof(*outerip6h) - (int)sizeof(*srh)) - (int)sizeof(*seg_item))
         return -1;
 
     /* Need to re-evaluate data_end and data after head adjustment, and
@@ -64,12 +64,12 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
 	srh = (void *)(outerip6h + 1);
 	if (srh + 1 > data_end)
         return -1;
-/*
+
     seg_item = (void *)(srh + 1);
     if (seg_item + 1 > data_end)
         return -1;
-*/
-	innerip6h = (void *)(srh+ 1);
+
+	innerip6h = (void *)(seg_item + 1);
 	if (innerip6h +1 > data_end)
 		return -1;
 
