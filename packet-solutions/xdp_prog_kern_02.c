@@ -33,7 +33,7 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
     struct ipv6hdr *outerip6h;
     struct ipv6hdr *innerip6h;
 	struct ipv6_sr_hdr *srh;
-	struct in6_addr *seg_item = NULL;
+	struct in6_addr *seg_item;
 
     /* First copy the original Ethernet header */
     __builtin_memcpy(&eth_cpy, eth, sizeof(eth_cpy));
@@ -100,8 +100,6 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
 	__builtin_memcpy(&outerip6h->daddr, &outer_dst_ipv6, sizeof(outer_dst_ipv6));
 
 	__builtin_memcpy(seg_item, &outer_dst_ipv6, sizeof(struct in6_addr));
-	if ((void *)(&srh->segments[0] + sizeof(struct in6_addr) + 1) > data_end)
-        return XDP_PASS;
 	__builtin_memcpy(&srh->segments[0], &seg_item, sizeof(struct in6_addr));
 
 	outerip6h->version=6;
@@ -119,6 +117,9 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
 
 	//__builtin_memcpy(&(outerip6h->saddr), &outer_src_ipv6, sizeof(struct in6_addr));
 	//__builtin_memcpy(&outerip6h->daddr, &outer_dst_ipv6, sizeof(struct in6_addr));
+
+	if ((void *)(&srh->segments[0] + sizeof(struct in6_addr) + 1) > data_end)
+        return XDP_PASS;
 
     eth->h_proto = bpf_htons(ETH_P_IPV6);
     return 0;
