@@ -111,7 +111,7 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
 	outerip6h->payload_len = bpf_htons(innerlen + sizeof(*outerip6h) + sizeof(*srh));
 
 	srh->nexthdr = IPPROTO_IPV6;
-    srh->hdrlen = sizeof(*srh) + sizeof(*seg_item);
+    srh->hdrlen = sizeof(*srh);
     srh->type = 4;
     srh->segments_left = 0;//0
     srh->first_segment = 0;//0
