@@ -98,7 +98,7 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
 	outerip6h->hop_limit = 64;
 	outerip6h->payload_len = bpf_htons(innerlen + sizeof(*outerip6h) + sizeof(*srh));
 
-	srh = (void *)outerip6h + sizeof(struct ipv6hdr)
+	srh = (void *)outerip6h + sizeof(struct ipv6hdr);
 	if (srh + 1 > data_end)
         return -1;
 	srh->nexthdr = IPPROTO_IPV6;
