@@ -108,17 +108,16 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
 	
 	if (srh + 1 > data_end)
         return -1;
-
 	seg_item = (void *)(srh + 1);
     if (seg_item + 1 > data_end)
         return -1;
 	__builtin_memcpy(seg_item, &outer_dst_ipv6, sizeof(struct in6_addr));
-
+/*
 	if ((void *)(&srh->segments[0] + 1) > data_end)
 		return -1;
 //	__builtin_memcpy(&srh->segments[0], &seg_item, sizeof(struct in6_addr));
 	srh->segments[0] = *seg_item;
-
+*/
 	//	__builtin_memcpy(&outerip6h->saddr, &outer_src_ipv6, sizeof(outer_src_ipv6));
 	//__builtin_memcpy(&(outerip6h->saddr), &outer_src_ipv6, sizeof(struct in6_addr));
 	//__builtin_memcpy(&outerip6h->daddr, &outer_dst_ipv6, sizeof(struct in6_addr));
