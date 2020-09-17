@@ -34,7 +34,8 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
     struct ipv6hdr *innerip6h;
 	struct ipv6_sr_hdr *srh;
 	struct in6_addr *seg_item;
-
+	__u8 innerlen;
+	
     /* First copy the original Ethernet header */
     __builtin_memcpy(&eth_cpy, eth, sizeof(eth_cpy));
 
@@ -73,8 +74,6 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
 	if (innerip6h +1 > data_end)
 		return -1;
 
-	__u8 innerlen;
-
 	struct in6_addr outer_dst_ipv6 = {
         .in6_u = {
             .u6_addr8 = {
@@ -99,27 +98,28 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
 //	__builtin_memcpy(&outerip6h->saddr, &outer_src_ipv6, sizeof(outer_src_ipv6));
 	__builtin_memcpy(&outerip6h->daddr, &outer_dst_ipv6, sizeof(outer_dst_ipv6));
 
+/*
 	__builtin_memcpy(seg_item, &outer_dst_ipv6, sizeof(struct in6_addr));
+	if ((void *)(&srh->segments[0] + sizeof(struct in6_addr) + 1) > data_end)
+        return XDP_PASS;
 	__builtin_memcpy(&srh->segments[0], &seg_item, sizeof(struct in6_addr));
+*/
 
 	outerip6h->version=6;
 	outerip6h->priority=0;
 	outerip6h->nexthdr = NEXTHDR_IPV6;
 	outerip6h->hop_limit = 64;
 	outerip6h->payload_len = bpf_htons(innerlen + sizeof(*outerip6h) + sizeof(*srh));
-
+/*
 	srh->nexthdr = IPPROTO_IPV6;
     srh->hdrlen = sizeof(*srh);
     srh->type = 4;
     srh->segments_left = 0;//0
     srh->first_segment = 0;//0
     srh->flags = 0;
-
+*/
 	//__builtin_memcpy(&(outerip6h->saddr), &outer_src_ipv6, sizeof(struct in6_addr));
 	//__builtin_memcpy(&outerip6h->daddr, &outer_dst_ipv6, sizeof(struct in6_addr));
-
-	if ((void *)(&srh->segments[0] + sizeof(struct in6_addr) + 1) > data_end)
-        return XDP_PASS;
 
     eth->h_proto = bpf_htons(ETH_P_IPV6);
     return 0;
@@ -220,7 +220,7 @@ int xdp_srv6_encap_func(struct xdp_md *ctx)
 
 	if (eth->h_proto == bpf_htons(ETH_P_IPV6)){
         srv6_encap(ctx, eth);
-//		return XDP_TX;
+		return XDP_TX;
 	}
 
         return XDP_PASS;
