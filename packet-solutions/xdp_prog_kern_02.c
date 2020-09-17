@@ -97,31 +97,29 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
 	innerlen = bpf_ntohs(innerip6h->payload_len);
 //	__builtin_memcpy(&outerip6h->saddr, &outer_src_ipv6, sizeof(outer_src_ipv6));
 	__builtin_memcpy(&outerip6h->daddr, &outer_dst_ipv6, sizeof(outer_dst_ipv6));
-
-/*
 	__builtin_memcpy(seg_item, &outer_dst_ipv6, sizeof(struct in6_addr));
-	if ((void *)(&srh->segments[0] + sizeof(struct in6_addr) + 1) > data_end)
-        return XDP_PASS;
-	__builtin_memcpy(&srh->segments[0], &seg_item, sizeof(struct in6_addr));
-*/
 
 	outerip6h->version=6;
 	outerip6h->priority=0;
 	outerip6h->nexthdr = NEXTHDR_IPV6;
 	outerip6h->hop_limit = 64;
 	outerip6h->payload_len = bpf_htons(innerlen + sizeof(*outerip6h) + sizeof(*srh));
-/*
+
 	srh->nexthdr = IPPROTO_IPV6;
-    srh->hdrlen = sizeof(*srh);
+    srh->hdrlen = bpf_htons(sizeof(*srh) + sizeof(*seg_item));
     srh->type = 4;
     srh->segments_left = 0;//0
     srh->first_segment = 0;//0
     srh->flags = 0;
-*/
+
 	//__builtin_memcpy(&(outerip6h->saddr), &outer_src_ipv6, sizeof(struct in6_addr));
 	//__builtin_memcpy(&outerip6h->daddr, &outer_dst_ipv6, sizeof(struct in6_addr));
 
-    eth->h_proto = bpf_htons(ETH_P_IPV6);
+	if ((void *)(&srh->segments[0] + sizeof(struct in6_addr) + 1) > data_end)
+		return -1;
+	__builtin_memcpy(&srh->segments[0], &seg_item, sizeof(struct in6_addr));
+
+	eth->h_proto = bpf_htons(ETH_P_IPV6);
     return 0;
 }
 
