@@ -36,11 +36,23 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
 	struct in6_addr *seg_item;
 	__u8 innerlen;
 	
+	struct in6_addr outer_dst_ipv6 = {
+        .in6_u = {
+            .u6_addr8 = {
+				//2406:da14:a33:1c01:9a1b:cdcb:66fa:ec0e
+                0x24, 0x06, 0xda, 0x14, 0x0a, 0x33, 0x1c, 0x01,
+                0x9a, 0x1b, 0xcd, 0xcb, 0x66, 0xfa, 0xec, 0x0e,
+            }
+        }
+    };
+
 	if (eth + 1 > data_end)
         return -1;
 	innerip6h = (void *)(eth + 1);
 	if (innerip6h + 1 > data_end)
 		return -1;
+	innerlen = bpf_ntohs(innerip6h->payload_len);
+
     /* First copy the original Ethernet header */
     __builtin_memcpy(&eth_cpy, eth, sizeof(eth_cpy));
 
@@ -63,15 +75,6 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
     __builtin_memcpy(eth, &eth_cpy, sizeof(*eth));
 	eth->h_proto = bpf_htons(ETH_P_IPV6);
 
-	struct in6_addr outer_dst_ipv6 = {
-        .in6_u = {
-            .u6_addr8 = {
-				//2406:da14:a33:1c01:9a1b:cdcb:66fa:ec0e
-                0x24, 0x06, 0xda, 0x14, 0x0a, 0x33, 0x1c, 0x01,
-                0x9a, 0x1b, 0xcd, 0xcb, 0x66, 0xfa, 0xec, 0x0e,
-            }
-        }
-    };
 /*
         struct in6_addr outer_src_ipv6 = {
                 .in6_u = {
@@ -87,8 +90,7 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
 	outerip6h = (void *)(eth + 1);
     if (outerip6h + 1 > data_end)
         return -1;
-	__builtin_memcpy(outerip6h, innerip6h, sizeof(*innerip6h));
-	innerlen = bpf_ntohs(innerip6h->payload_len);
+//	__builtin_memcpy(outerip6h, innerip6h, sizeof(*innerip6h));
 	__builtin_memcpy(&outerip6h->daddr, &outer_dst_ipv6, sizeof(outer_dst_ipv6));
 	outerip6h->version=6;
 	outerip6h->priority=0;
@@ -96,7 +98,7 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
 	outerip6h->hop_limit = 64;
 	outerip6h->payload_len = bpf_htons(innerlen + sizeof(*outerip6h) + sizeof(*srh));
 
-	srh = (void *)(outerip6h + 1);
+	srh = (void *)outerip6h + sizeof(struct ipv6hdr)
 	if (srh + 1 > data_end)
         return -1;
 	srh->nexthdr = IPPROTO_IPV6;
