@@ -40,9 +40,7 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
 	struct in6_addr outer_dst_ipv6 = {
         .in6_u = {
             .u6_addr8 = {
-				//2406:da14:a33:1c01:9a1b:cdcb:66fa:ec0e
-                0x24, 0x06, 0xda, 0x14, 0x0a, 0x33, 0x1c, 0x01,
-                0x9a, 0x1b, 0xcd, 0xcb, 0x66, 0xfa, 0xec, 0x0e,
+
             }
         }
     };
@@ -51,8 +49,7 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
         struct in6_addr outer_src_ipv6 = {
                 .in6_u = {
                         .u6_addr8 = {
-                        0x24, 0x06, 0xda, 0x14, 0x0a, 0x33, 0x1c, 0x01,
-                        0x9a, 0x1b, 0xcd, 0xcb, 0x66, 0xfa, 0xec, 0x0e,
+
                         }
                 }
         };
@@ -229,7 +226,7 @@ int xdp_srv6_encap_func(struct xdp_md *ctx)
 
 	if (eth->h_proto == bpf_htons(ETH_P_IPV6)){
         srv6_encap(ctx, eth);
-		return XDP_TX;
+//		return XDP_TX;
 	}
 
         return XDP_PASS;
