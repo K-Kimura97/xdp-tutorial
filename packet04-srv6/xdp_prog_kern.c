@@ -96,8 +96,7 @@ static inline int action_t_gtb4_d(struct xdp_md *xdp, struct ethhdr *eth)
 	struct in6_addr add_ipv6 = {
         .in6_u = {
             .u6_addr8 = {
-                0x24, 0x06, 0xda, 0x14, 0x0a, 0x6f, 0x78, 0x01,
-                0xb7, 0xb8, 0x62, 0x29, 0xe0, 0x26, 0x05, 0x71,
+                
             }
         }
     };
