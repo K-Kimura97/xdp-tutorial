@@ -229,7 +229,7 @@ int xdp_srv6_encap_func(struct xdp_md *ctx)
 
 	if (eth->h_proto == bpf_htons(ETH_P_IPV6)){
         srv6_encap(ctx, eth);
-		//return XDP_TX;
+		return XDP_TX;
 	}
 
         return XDP_PASS;
