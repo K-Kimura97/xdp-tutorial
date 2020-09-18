@@ -67,7 +67,7 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
 	if (innerip6h + 1 > data_end)
 		return -1;
 	innerlen = bpf_ntohs(innerip6h->payload_len);
-	
+
     /* Then add space in front of the packet */
     if (bpf_xdp_adjust_head(ctx, 0 - (int)sizeof(*outerip6h) - (int)sizeof(*srh)) - (int)sizeof(*seg_item))
         return -1;
@@ -90,6 +90,8 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
 	outerip6h = (void *)(eth + 1);
     if (outerip6h + 1 > data_end)
         return -1;
+	if (innerip6h + 1 > data_end)
+		return -1;
 	__builtin_memcpy(outerip6h, innerip6h, sizeof(*innerip6h));
 
 	if ((void*)&outerip6h->daddr + sizeof(struct in6_addr) > data_end)
