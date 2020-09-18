@@ -98,23 +98,24 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
                 return -1;
 */
 	__builtin_memcpy(&outerip6h->daddr, &outer_dst_ipv6, sizeof(outer_dst_ipv6));
-
+/*
 	outerip6h->version=6;
 	outerip6h->priority=0;
 	outerip6h->nexthdr = NEXTHDR_ROUTING;
 	outerip6h->hop_limit = 64;
 	outerip6h->payload_len = bpf_htons(innerlen + sizeof(*outerip6h) + sizeof(*srh) + sizeof(struct in6_addr));
-
+*/
 	srh = (void *)outerip6h + sizeof(struct ipv6hdr);
 	if (srh + 1 > data_end)
         return -1;
+/*
 	srh->nexthdr = IPPROTO_IPV6;
     srh->hdrlen = (sizeof(*srh) + sizeof(*seg_item))/8 - 1;
     srh->type = 4;
     srh->segments_left = 0;//0
     srh->first_segment = 0;//0
     srh->flags = 0;
-	
+*/	
 	seg_item = (void *)(srh + 1);
     if (seg_item + 1 > data_end)
         return -1;
