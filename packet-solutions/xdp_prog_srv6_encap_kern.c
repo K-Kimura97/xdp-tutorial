@@ -48,10 +48,6 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
 
 	if (eth + 1 > data_end)
         return -1;
-	innerip6h = (void *)(eth + 1);
-	if (innerip6h + 1 > data_end)
-		return -1;
-	innerlen = bpf_ntohs(innerip6h->payload_len);
 
     /* First copy the original Ethernet header */
     __builtin_memcpy(&eth_cpy, eth, sizeof(eth_cpy));
@@ -85,7 +81,11 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
                 }
         };
 */
-
+	innerip6h = (void *)(eth + 1);
+	if (innerip6h + 1 > data_end)
+		return -1;
+	innerlen = bpf_ntohs(innerip6h->payload_len);
+	
 	outerip6h = (void *)(eth + 1);
     if (outerip6h + 1 > data_end)
         return -1;
@@ -94,7 +94,7 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
 	if ((void*)&outerip6h->daddr + sizeof(struct in6_addr) > data_end)
                 return -1;
 	__builtin_memcpy(&outerip6h->daddr, &outer_dst_ipv6, sizeof(outer_dst_ipv6));
-	
+
 	outerip6h->version=6;
 	outerip6h->priority=0;
 	outerip6h->nexthdr = NEXTHDR_ROUTING;
