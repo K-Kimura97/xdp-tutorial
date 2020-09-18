@@ -71,7 +71,7 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
 	__builtin_memcpy(&ip6h_cpy, innerip6h, sizeof(ip6h_cpy));
 
     /* Then add space in front of the packet */
-    if (bpf_xdp_adjust_head(ctx, 0 - (int)(sizeof(*outerip6h) - sizeof(*srh) - sizeof(struct in6_addr))))//(int)sizeof(*srh)) - (int)sizeof(struct in6_addr))
+    if (bpf_xdp_adjust_head(ctx, 0 - (int)(sizeof(*outerip6h) ＋ sizeof(*srh) ＋ sizeof(struct in6_addr))))//(int)sizeof(*srh)) - (int)sizeof(struct in6_addr))
         return -1;
 	
     /* Need to re-evaluate data_end and data after head adjustment, and
