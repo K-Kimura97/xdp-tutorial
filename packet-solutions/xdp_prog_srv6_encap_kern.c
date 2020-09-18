@@ -34,7 +34,7 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
     struct ipv6hdr *innerip6h;
 	struct ipv6hdr ip6h_cpy;
  	struct ipv6_sr_hdr *srh;
-	struct in6_addr *seg_item;
+//	struct in6_addr *seg_item;
 	__u8 innerlen;
 	
 	struct in6_addr outer_dst_ipv6 = {
@@ -116,11 +116,12 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
     srh->first_segment = 0;//0
     srh->flags = 0;
 */	
+/*
 	seg_item = (void *)(srh + 1);
     if (seg_item + 1 > data_end)
         return -1;
 	__builtin_memcpy(seg_item, &outer_dst_ipv6, sizeof(struct in6_addr));
-
+*/
 /*
 	if ((void *)(&srh->segments[0] + 1) > data_end)
 		return -1;
