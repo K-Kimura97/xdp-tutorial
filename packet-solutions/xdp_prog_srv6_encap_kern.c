@@ -93,10 +93,10 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
     if (outerip6h + 1 > data_end)
         return -1;
 	__builtin_memcpy(outerip6h, &ip6h_cpy, sizeof(ip6h_cpy));
-/*
+
 	if ((void*)&outerip6h->daddr + sizeof(struct in6_addr) > data_end)
                 return -1;
-*/
+
 	__builtin_memcpy(&outerip6h->daddr, &outer_dst_ipv6, sizeof(outer_dst_ipv6));
 
 	outerip6h->version=6;
