@@ -93,9 +93,10 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
     if (outerip6h + 1 > data_end)
         return -1;
 	__builtin_memcpy(outerip6h, &ip6h_cpy, sizeof(ip6h_cpy));
-
+/*
 	if ((void*)&outerip6h->daddr + sizeof(struct in6_addr) > data_end)
                 return -1;
+*/
 	__builtin_memcpy(&outerip6h->daddr, &outer_dst_ipv6, sizeof(outer_dst_ipv6));
 
 	outerip6h->version=6;
@@ -103,7 +104,7 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
 	outerip6h->nexthdr = NEXTHDR_ROUTING;
 	outerip6h->hop_limit = 64;
 	outerip6h->payload_len = bpf_htons(innerlen + sizeof(*outerip6h) + sizeof(*srh) + sizeof(struct in6_addr));
-/*
+
 	srh = (void *)outerip6h + sizeof(struct ipv6hdr);
 	if (srh + 1 > data_end)
         return -1;
@@ -118,7 +119,6 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
     if (seg_item + 1 > data_end)
         return -1;
 	__builtin_memcpy(seg_item, &outer_dst_ipv6, sizeof(struct in6_addr));
-*/
 
 /*
 	if ((void *)(&srh->segments[0] + 1) > data_end)
