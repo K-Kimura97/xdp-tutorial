@@ -90,7 +90,11 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
     if (outerip6h + 1 > data_end)
         return -1;
 	__builtin_memcpy(outerip6h, innerip6h, sizeof(*innerip6h));
+
+	if ((void*)&outerip6h->daddr + sizeof(struct in6_addr) > data_end)
+                return -1;
 	__builtin_memcpy(&outerip6h->daddr, &outer_dst_ipv6, sizeof(outer_dst_ipv6));
+	
 	outerip6h->version=6;
 	outerip6h->priority=0;
 	outerip6h->nexthdr = NEXTHDR_ROUTING;
