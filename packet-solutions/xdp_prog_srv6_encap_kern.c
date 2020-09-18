@@ -34,7 +34,7 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
     struct ipv6hdr *innerip6h;
 	struct ipv6hdr ip6h_cpy;
  	struct ipv6_sr_hdr *srh;
-//	struct in6_addr *seg_item;
+	struct in6_addr *seg_item;
 	__u8 innerlen;
 	
 	struct in6_addr outer_dst_ipv6 = {
@@ -71,7 +71,7 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
 	__builtin_memcpy(&ip6h_cpy, innerip6h, sizeof(ip6h_cpy));
 
     /* Then add space in front of the packet */
-    if (bpf_xdp_adjust_head(ctx, 0 - (int)sizeof(*outerip6h) - (int)sizeof(*srh)))// - (int)sizeof(*seg_item))
+    if (bpf_xdp_adjust_head(ctx, 0 - (int)sizeof(*outerip6h) - (int)sizeof(*srh))) - (int)sizeof(*seg_item))
         return -1;
 	
     /* Need to re-evaluate data_end and data after head adjustment, and
@@ -98,30 +98,29 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
                 return -1;
 */
 	__builtin_memcpy(&outerip6h->daddr, &outer_dst_ipv6, sizeof(outer_dst_ipv6));
-/*
+
 	outerip6h->version=6;
 	outerip6h->priority=0;
 	outerip6h->nexthdr = NEXTHDR_ROUTING;
 	outerip6h->hop_limit = 64;
 	outerip6h->payload_len = bpf_htons(innerlen + sizeof(*outerip6h) + sizeof(*srh) + sizeof(struct in6_addr));
-*/
+
 	srh = (void *)outerip6h + sizeof(struct ipv6hdr);
 	if (srh + 1 > data_end)
         return -1;
-/*
+
 	srh->nexthdr = IPPROTO_IPV6;
     srh->hdrlen = (sizeof(*srh) + sizeof(*seg_item))/8 - 1;
     srh->type = 4;
     srh->segments_left = 0;//0
     srh->first_segment = 0;//0
     srh->flags = 0;
-*/	
-/*
+
 	seg_item = (void *)(srh + 1);
     if (seg_item + 1 > data_end)
         return -1;
 	__builtin_memcpy(seg_item, &outer_dst_ipv6, sizeof(struct in6_addr));
-*/
+
 /*
 	if ((void *)(&srh->segments[0] + 1) > data_end)
 		return -1;
