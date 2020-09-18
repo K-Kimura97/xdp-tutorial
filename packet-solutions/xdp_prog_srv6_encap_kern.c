@@ -100,7 +100,7 @@ static __always_inline int srv6_encap(struct xdp_md *ctx,
 
 	outerip6h->version=6;
 	outerip6h->priority=0;
-	outerip6h->nexthdr = NEXTHDR_IPV6;//NEXTHDR_ROUTING;
+	outerip6h->nexthdr = NEXTHDR_ROUTING;
 	outerip6h->hop_limit = 64;
 	outerip6h->payload_len = bpf_htons(innerlen + sizeof(*outerip6h) + sizeof(*srh) + sizeof(struct in6_addr));
 /*
